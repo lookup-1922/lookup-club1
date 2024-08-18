@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>リサージュ図形描画</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            padding: 10px;
+        }
+        canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        .controls {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .controls label, .controls input, .controls button {
+            margin: 5px;
+        }
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>リサージュ図形描画</h1>
+    <div class="controls">
+        <label for="a">a:</label>
+        <input type="number" id="a" value="1">
+        <label for="b">b:</label>
+        <input type="number" id="b" value="1">
+        <button onclick="drawLissajous()">描画</button>
+    </div>
+    <canvas id="lissajousCanvas" width="500" height="500"></canvas>
+
+    <script>
+        function drawLissajous() {
+            const a = parseFloat(document.getElementById('a').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const canvas = document.getElementById('lissajousCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = Math.min(width, height) / 2.5;
+            const steps = 1000;
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.beginPath();
+            for (let t = 0; t < 2 * Math.PI; t += 2 * Math.PI / steps) {
+                const x = centerX + scale * Math.sin(a * t);
+                const y = centerY + scale * Math.sin(b * t);
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
