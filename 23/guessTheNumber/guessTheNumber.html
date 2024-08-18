@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Number</title>
+    <link rel="stylesheet" href="../CSS/style.css" type="text/css">
+</head>
+
+<body>
+    <div id="container">
+        <h1>Guess the Number</h1>
+        <details>
+            <summary>概要</summary>
+            <p>Guess the Numberは、正の約数の情報を元に0~99のランダムな数字を当てるゲームです。少ない時間で正解することが目標です。</p>
+        </details>
+        <details>
+            <summary>ゲームの説明</summary>
+            <ol>
+                <li>「ゲームスタート」ボタンを押してゲームをスタートする</li>
+                <li>約数を予想する</li>
+                <li>約数の正誤と今までの約数と回答の情報が表示される</li>
+                <li>正解を予想する</li>
+                <li>約数の正誤と今までの約数と回答の情報が表示される</li>
+                <li>約数を予想する段階に戻る</li>
+            </ol>
+        </details>
+
+        <p>
+            <button onclick="gameStart()">ゲームスタート</button>
+            <button onclick="gameSunset()">ゲームを終了</button>
+            <input type="checkbox" id="cheatTool">
+            <label for="cheatTool">チートを有効にする</label>
+        </p>
+
+        <p>
+            <label for="inputNumber"><span id="currentRequest"></span></label>
+            <input type="number" id="inputNumber">
+            <button onclick="sendNumber()">予想する</button>
+        </p>
+
+        <div id="information"></div>
+        <div id="truePlayerDivisor">約数である:</div>
+        <div id="falsePlayerDivisor">約数ではない:</div>
+        <div id="historyPlayerNumber">これまでの回答:</div>
+        <div id="cheatToolHint">ヒント:</div>
+    </div>
+    <script src="guessTheNumber.js"></script>
+</body>
+
+</html>

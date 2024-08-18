@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花火アニメーション</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0d1b2a;
+            /* 夜空の色 */
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- 打ち上げ音と爆発音の音声ファイル -->
+    <audio id="launchSound" src="launch.mp3"></audio>
+    <audio id="explosionSound" src="explosion.mp3"></audio>
+
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const launchSound = document.getElementById('launchSound');
+        const explosionSound = document.getElementById('explosionSound');
+
+        const friendImage = new Image();
+        friendImage.src = 'friend.jpeg';
+
+        // 必要なファイルリストをコンソールに表示
+        function logRequiredFiles() {
+            console.log("必要なファイルリスト:");
+            console.log("1. launch.mp3 - 打ち上げ音");
+            console.log("2. explosion.mp3 - 爆発音");
+            console.log("3. friend.jpeg - 人の画像");
+        }
+
+        class Firework {
+            constructor(startX, startY, targetX, targetY, colors) {
+                this.startX = startX;
+                this.startY = startY;
+                this.x = startX;
+                this.y = startY;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.colors = colors;
+                this.particles = [];
+                this.hasExploded = false;
+                this.speed = 5;
+                this.angle = Math.atan2(targetY - startY, targetX - startX);
+
+                launchSound.currentTime = 0;
+                launchSound.play(); // 打ち上げ音を再生
+            }
+
+            update() {
+                if (!this.hasExploded) {
+                    const distance = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+                    if (distance > this.speed) {
+                        this.x += Math.cos(this.angle) * this.speed;
+                        this.y += Math.sin(this.angle) * this.speed;
+                    } else {
+                        this.hasExploded = true;
+                        launchSound.pause();        // 打ち上げ音を停止
+                        launchSound.currentTime = 0; // 再生位置をリセット
+                        this.createParticles();
+                        explosionSound.currentTime = 0;
+                        explosionSound.play(); // 爆発音を再生
+                    }
+                } else {
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        const p = this.particles[i];
+                        p.update();
+                        if (p.opacity <= 0) {
+                            this.particles.splice(i, 1);
+                        }
+                    }
+                }
+            }
+
+            createParticles() {
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push(new Particle(this.x, this.y, this.colors));
+                }
+            }
+
+            draw() {
+                if (!this.hasExploded) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fill();
+                } else {
+                    this.particles.forEach(p => p.draw());
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, colors) {
+                this.x = x;
+                this.y = y;
+                this.colors = colors;
+                this.angle = Math.random() * 2 * Math.PI;
+                this.speed = Math.random() * 5 + 2;
+                this.radius = Math.random() * 3 + 1;
+                this.life = Math.random() * 100 + 50;
+                this.decay = Math.random() * 0.015 + 0.005;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.opacity = 1;
+            }
+
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                this.speed *= 0.98;
+                this.life -= this.decay;
+                this.opacity -= this.decay; // 徐々に透明にする
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity; // 透明度を設定
+                ctx.fill();
+                ctx.globalAlpha = 1; // 透明度を元に戻す
+            }
+        }
+
+        const fireworks = [];
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 画像のアスペクト比を保ちながら描画
+            const imgAspectRatio = friendImage.width / friendImage.height;
+            const imgWidth = 150;
+            const imgHeight = imgWidth / imgAspectRatio;
+            ctx.drawImage(friendImage, canvas.width - imgWidth - 10, canvas.height - imgHeight - 10, imgWidth, imgHeight);
+
+            fireworks.forEach((firework, index) => {
+                firework.update();
+                firework.draw();
+                if (firework.hasExploded && firework.particles.length === 0) {
+                    fireworks.splice(index, 1);
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const targetX = e.clientX;
+            const targetY = e.clientY;
+            const startX = targetX;           // 花火がクリック位置の真下から打ち上がる
+            const startY = canvas.height;     // 花火が画面下から打ち上がる
+            const colors = ['#FF1461', '#18FF92', '#5A87FF', '#FBF38C'];
+            fireworks.push(new Firework(startX, startY, targetX, targetY, colors));
+        });
+
+        friendImage.onload = () => {
+            logRequiredFiles(); // ファイルリストを表示
+            animate(); // アニメーションを開始
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+/* 全体のレイアウト */
+body {
+    margin: 0;
+    background-color: #ffffff;
+}
+
+.questionList {
+    background-color: #f0f0f0;
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+    display: flex;
+    list-style: none;
+}
+
+.questionList li {
+    margin-left: 2em;
+    cursor: pointer;
+}
+
+.container {
+    margin: 0 auto;
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 44px);
+}
+
+/* mainとcommandのレイアウト */
+.main,
+.command {
+    flex: 1;
+    background-color: #ffffff;
+    /* 背景色を白に設定 */
+    border: 1px solid #000000;
+    /* 黒色の枠線を追加 */
+}
+
+/* mainとcommandの幅を調整 */
+.main {
+    flex: 70vw;
+    padding: 20px;
+}
+
+.command {
+    flex: 30vw;
+    padding: 20px;
+    position: relative;
+}
+
+.quetion {
+    margin-bottom: 20px;
+}
+
+.answer {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+/* 選択肢と次の問題へのスタイル */
+.selection {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.change {
+    margin-top: 20px;
+}
+
+.choice {
+    display: inline-block;
+    width: 100%;
+    color: #4D9BC1;
+    border: 2px solid #4D9BC1;
+    background: #fff;
+    padding: 1em 2em;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.choice:hover {
+    color: #fff;
+    background: #4D9BC1;
+}
+
+#next {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #4D9BC1;
+    border: 2px solid #4D9BC1;
+    background: #fff;
+    padding: 1em 2em;
+    margin: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+#next:hover {
+    color: #fff;
+    background: #4D9BC1;
+}

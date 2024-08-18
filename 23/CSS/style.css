@@ -1,0 +1,106 @@
+/* styles.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#container {
+    max-width: 600px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: left; /* 左揃えに変更 */
+}
+
+h1 {
+    color: #000000;
+}
+
+h2 {
+    color: #202124;
+}
+
+p {
+    color: #333333;
+    line-height: 1.5;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* 新しいスタイルクラス */
+.my-custom-class {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff6600;
+}
+
+/* 追加の新しいスタイル */
+.container-fluid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.custom-box {
+    max-width: 600px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: left; /* 左揃えに変更 */
+}
+
+.custom-heading {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.custom-subheading {
+    color: #555;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.custom-text {
+    color: #777;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.custom-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.custom-button:hover {
+    background-color: #0056b3;
+}
