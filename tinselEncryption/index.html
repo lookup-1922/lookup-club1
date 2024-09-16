@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファイル暗号化・復号ツール (AES-256)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>ファイル暗号化・復号ツール (AES-256)</h1>
+
+    <!-- テーマ切り替え -->
+    <label>
+        <input type="checkbox" id="themeToggle"> ダークモード
+    </label>
+
+    <!-- 暗号化セクション -->
+    <h2>ファイルを暗号化</h2>
+    <label for="encryptPassword">パスワードを入力してください:</label>
+    <input type="password" id="encryptPassword" placeholder="パスワードを入力">
+    <br>
+
+    <label for="fileInput">暗号化するファイルを選択:</label>
+    <input type="file" id="fileInput">
+    <br>
+
+    <button id="encryptButton">ファイルを暗号化</button>
+    <p id="encryptLoading" class="loading" style="display: none;">暗号化中...</p>
+    <a id="downloadLink" style="display: none;">暗号化されたファイルをダウンロード</a>
+
+    <hr>
+
+    <!-- 復号セクション -->
+    <h2>ファイルを復号</h2>
+    <label for="decryptPassword">パスワードを入力してください:</label>
+    <input type="password" id="decryptPassword" placeholder="パスワードを入力">
+    <br>
+
+    <label for="decryptFileInput">復号するファイルを選択 (.enc):</label>
+    <input type="file" id="decryptFileInput">
+    <br>
+
+    <button id="decryptButton">ファイルを復号</button>
+    <p id="decryptLoading" class="loading" style="display: none;">復号中...</p>
+    <a id="decryptDownloadLink" style="display: none;">復号されたファイルをダウンロード</a>
+
+    <!-- Web Worker Scripts -->
+    <script src="scripts.js"></script>
+</body>
+
+</html>
