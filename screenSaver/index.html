@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スクリーンセーバー - スムーズ移動時計と透明バブル</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="screenSaverCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("screenSaverCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const bubbles = [];
+        const numBubbles = 50;
+
+        // ランダムな泡の作成（縁のみカラフルにし、中を透明にする）
+        function createBubble() {
+            const colors = ["#ff6b6b", "#feca57", "#54a0ff", "#5f27cd", "#48dbfb", "#1dd1a1"];
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: 10 + Math.random() * 20,
+                dx: (Math.random() - 0.5) * 4,
+                dy: (Math.random() - 0.5) * 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                lineWidth: 2 + Math.random() * 2  // ラインの太さをランダムに設定
+            };
+        }
+
+        // 初期バブルを作成
+        for (let i = 0; i < numBubbles; i++) {
+            bubbles.push(createBubble());
+        }
+
+        // バブルの描画（縁のみ描画）
+        function drawBubble(bubble) {
+            ctx.beginPath();
+            ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = bubble.color;
+            ctx.lineWidth = bubble.lineWidth;
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        // 時刻の表示と位置更新（スムーズな移動）
+        function drawClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = now.getSeconds() + now.getMilliseconds() / 1000; // 秒とミリ秒を合わせた値
+            const timeString = `${hours}:${minutes}:${String(Math.floor(seconds)).padStart(2, '0')}`;
+
+            // 秒に基づくスムーズな横位置の計算
+            const maxWidth = canvas.width - 400;  // 400px は時計の表示幅に合わせて調整
+            const clockX = (seconds / 60) * maxWidth;
+
+            // 時刻の背景を描画（半透明の黒い四角）
+            const clockWidth = 400;
+            const clockHeight = 100;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+            ctx.fillRect(clockX, 20, clockWidth, clockHeight);
+
+            // 時刻の描画
+            ctx.font = "bold 96px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText(timeString, clockX + clockWidth / 2, 95);
+        }
+
+        // アニメーションループ
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // バブルの描画と位置更新
+            bubbles.forEach((bubble) => {
+                bubble.x += bubble.dx;
+                bubble.y += bubble.dy;
+
+                // 画面の端で跳ね返る
+                if (bubble.x + bubble.radius > canvas.width || bubble.x - bubble.radius < 0) {
+                    bubble.dx *= -1;
+                }
+                if (bubble.y + bubble.radius > canvas.height || bubble.y - bubble.radius < 0) {
+                    bubble.dy *= -1;
+                }
+
+                drawBubble(bubble);
+            });
+
+            // 現在時刻の描画
+            drawClock();
+
+            requestAnimationFrame(animate);
+        }
+
+        // ウィンドウサイズが変わったときのキャンバス調整
+        window.addEventListener("resize", () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        animate();
+    </script>
+</body>
+
+</html>
