@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手紙アニメーション</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f8ff;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        .envelope {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
+            transition: width 0.5s ease, height 0.5s ease, transform 0.5s ease;
+            cursor: pointer;
+        }
+
+        /* 封筒が開いた時のサイズ変更（画面全体を利用） */
+        .envelope.open {
+            width: 90vw;
+            height: 70vh;
+            border-radius: 10px;
+            cursor: default;
+            /* 封筒を開いた後はクリック可能にしない */
+        }
+
+        /* 封筒のフラップ */
+        .envelope::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ff6666;
+            clip-path: polygon(0 0, 100% 0, 50% 50%);
+            transition: transform 0.5s ease;
+            transform-origin: top center;
+            transform: rotateX(0deg);
+        }
+
+        /* 手紙の内容 */
+        .letter {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 90%;
+            height: 85%;
+            background-color: #fff;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            border-top: 2px dashed #333;
+            padding: 10px;
+            box-sizing: border-box;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            overflow-y: auto;
+            transition: opacity 0.5s ease, font-size 0.5s ease;
+        }
+
+        /* 封筒が開いた時に手紙のサイズとフォントサイズを調整 */
+        .envelope.open .letter {
+            opacity: 1;
+            font-size: 18px;
+        }
+
+        /* 罫線の追加 */
+        .letter p {
+            margin: 0;
+            padding-bottom: 5px;
+            border-bottom: 1px dotted #ddd;
+        }
+
+        /* アニメーションのトリガー */
+        .envelope.open::before {
+            transform: rotateX(180deg);
+        }
+
+        /* シェアボタン */
+        .share-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .envelope.open+.share-button {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="envelope" onclick="openEnvelope(this)">
+        <div class="letter">
+            <p>こんにちは！</p>
+            <p>数学には無限の可能性が広がっています。</p>
+            <p>数式を通して、自然界の法則や社会の仕組みを理解することができるんです。</p>
+            <p>数学の美しさは、問題を解決するだけでなく、論理的思考力を鍛え、新しい発見への扉を開いてくれるところにあります。</p>
+            <p>まるで探検家が新しい土地を発見するように、数学を通じて未知の世界に踏み込むことができます。</p>
+            <p>ぜひ、この美しい数学の世界を楽しんでくださいね！</p>
+            <p>手紙を最後まで読んでくれてありがとう。</p>
+        </div>
+    </div>
+
+    <button class="share-button" onclick="shareThankYouMessage()">手紙の返事をする</button>
+
+    <script>
+        function openEnvelope(element) {
+            if (!element.classList.contains('open')) {
+                element.classList.add('open');
+            }
+        }
+
+        function shareThankYouMessage() {
+            if (navigator.share) {
+                navigator.share({
+                    text: '手紙をくれてありがとう'
+                })
+                    .then(() => console.log('メッセージが共有されました'))
+                    .catch(error => console.log('共有に失敗しました', error));
+            } else {
+                alert('このブラウザはシェア機能に対応していません');
+            }
+        }
+    </script>
+</body>
+
+</html>
