@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子レンジ加熱時間計算アプリ</title>
+    <style>
+        :root {
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --button-bg: #4CAF50;
+            --button-text: white;
+            --button-disabled-bg: #ccc;
+            --link-color: #4CAF50;
+            --loading-color: #555;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --button-bg: #1e1e1e;
+            --button-text: #e0e0e0;
+            --button-disabled-bg: #333;
+            --link-color: #4CAF50;
+            --loading-color: #bbb;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 800px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        h1,
+        h2 {
+            color: var(--text-color);
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        button:disabled {
+            background-color: var(--button-disabled-bg);
+        }
+
+        #results p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>電子レンジ加熱時間計算</h1>
+    <form id="microwaveForm">
+        <label for="inputWatt">入力ワット数:</label>
+        <input type="number" id="inputWatt" placeholder="例: 500" required> W
+
+        <label for="minutes">加熱時間:</label>
+        <input type="number" id="minutes" placeholder="分" min="0" required> 分
+        <input type="number" id="seconds" placeholder="秒" min="0" max="59" required> 秒
+
+        <label for="targetWatt">変換先ワット数:</label>
+        <input type="number" id="targetWatt" placeholder="例: 600" required> W
+
+        <button type="button" onclick="calculate()">計算する</button>
+    </form>
+
+    <h2>計算結果</h2>
+    <div id="results"></div>
+
+    <script>
+        function calculate() {
+            const inputWatt = parseInt(document.getElementById('inputWatt').value);
+            const minutes = parseInt(document.getElementById('minutes').value);
+            const seconds = parseInt(document.getElementById('seconds').value);
+            const targetWatt = parseInt(document.getElementById('targetWatt').value);
+
+            const totalSeconds = minutes * 60 + seconds;
+            const energy = inputWatt * totalSeconds;
+
+            function calculateTimeForWatt(energy, watt) {
+                const timeInSeconds = energy / watt;
+                const minutes = Math.floor(timeInSeconds / 60);
+                const seconds = Math.round(timeInSeconds % 60);
+                return `${minutes}分${seconds}秒`;
+            }
+
+            const resultHTML = `
+        <p>入力された加熱時間での熱量: ${energy.toFixed(0)} J</p>
+        <p>500Wでの加熱時間: ${calculateTimeForWatt(energy, 500)}</p>
+        <p>600Wでの加熱時間: ${calculateTimeForWatt(energy, 600)}</p>
+        <p>${targetWatt}Wでの加熱時間: ${calculateTimeForWatt(energy, targetWatt)}</p>
+      `;
+            document.getElementById('results').innerHTML = resultHTML;
+        }
+    </script>
+</body>
+
+</html>
