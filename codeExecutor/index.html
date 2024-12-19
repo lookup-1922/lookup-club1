@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Executor</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,7 +20,6 @@
             align-items: center;
             height: 100vh;
             overflow-x: hidden;
-            /* Prevent horizontal scrolling */
         }
 
         header {
@@ -45,21 +46,10 @@
             margin-top: 20px;
         }
 
-        textarea {
+        #editor {
             width: 100%;
-            height: 150px;
+            height: 300px;
             background-color: #252526;
-            color: #d4d4d4;
-            border: 1px solid #3c3c3c;
-            border-radius: 4px;
-            padding: 10px;
-            resize: none;
-            font-family: monospace;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #61dafb;
         }
 
         select,
@@ -121,7 +111,8 @@
             <option value="python">Python</option>
         </select>
 
-        <textarea id="code" placeholder="Write your code here..."></textarea>
+        <div id="editor"></div>
+
         <input type="file" id="fileInput">
         <button id="run">Run</button>
 
@@ -134,6 +125,20 @@
     </footer>
 
     <script>
+        let editor;
+
+        // Monaco Editorの設定
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: "",
+                language: "javascript",
+                theme: "vs-dark",
+                automaticLayout: true
+            });
+        });
+
+        // Pythonコードを実行する関数
         async function runPython(code) {
             const pyodide = await loadPyodide();
             try {
@@ -143,9 +148,10 @@
             }
         }
 
+        // コード実行ボタンのイベント
         document.getElementById('run').addEventListener('click', async () => {
             const language = document.getElementById('language').value;
-            const code = document.getElementById('code').value;
+            const code = editor.getValue();
             const outputElement = document.getElementById('output');
 
             if (language === 'javascript') {
@@ -162,12 +168,13 @@
             }
         });
 
+        // ファイルアップロードの処理
         document.getElementById('fileInput').addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    document.getElementById('code').value = reader.result;
+                    editor.setValue(reader.result);
                 };
                 reader.readAsText(file);
             }
