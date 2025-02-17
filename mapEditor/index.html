@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>戦略マップエディタ</title>
+    <style>
+        svg {
+            width: 100%;
+            height: 90vh;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>戦略マップエディタ</h1>
+    <svg id="mapSvg" viewBox="0 0 1000 500"></svg>
+    <button onclick="exportData()">エクスポート</button>
+    <button onclick="importData()">インポート</button>
+    <input type="file" id="fileInput" style="display: none;" onchange="loadFile(event)">
+
+    <script>
+        let colors = [
+            "white", "red", "blue", "green", "yellow", "purple", "orange", "cyan", "magenta", "gray",
+            "brown", "pink", "lime", "teal", "navy", "gold", "coral", "maroon", "olive", "indigo", "violet",
+            "silver", "chartreuse", "aquamarine", "turquoise", "plum", "peru", "orchid", "lavender", "khaki", "ivory",
+            "honeydew", "azure", "beige", "salmon", "seagreen", "midnightblue", "firebrick", "darkorange", "darkslategray", "dodgerblue"
+        ];
+        let mapData = {};
+
+        function loadSvgMap() {
+            fetch("https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg")
+                .then(response => response.text())
+                .then(svgText => {
+                    document.getElementById("mapSvg").innerHTML = svgText;
+                    let paths = document.querySelectorAll("#mapSvg path");
+                    paths.forEach(path => {
+                        path.style.stroke = "black";
+                        path.style.fill = "white";
+                        path.dataset.owner = "null";
+                        path.addEventListener("click", () => assignOwner(path));
+                    });
+                });
+        }
+
+        function assignOwner(path) {
+            let newOwner = prompt("所有者のID (0-39, 0で未所有):", "0");
+            if (newOwner !== null && !isNaN(newOwner) && newOwner >= 0 && newOwner < colors.length) {
+                path.style.fill = colors[newOwner];
+                path.dataset.owner = newOwner === "0" ? "null" : newOwner;
+                mapData[path.id] = newOwner === "0" ? null : newOwner;
+            }
+        }
+
+        function exportData() {
+            let json = JSON.stringify(mapData);
+            let blob = new Blob([json], { type: "application/json" });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "mapData.json";
+            a.click();
+        }
+
+        function importData() {
+            document.getElementById("fileInput").click();
+        }
+
+        function loadFile(event) {
+            let file = event.target.files[0];
+            let reader = new FileReader();
+            reader.onload = function () {
+                mapData = JSON.parse(reader.result);
+                let paths = document.querySelectorAll("#mapSvg path");
+                paths.forEach(path => {
+                    if (mapData[path.id] !== undefined) {
+                        path.style.fill = mapData[path.id] === null ? "white" : colors[mapData[path.id]];
+                        path.dataset.owner = mapData[path.id] === null ? "null" : mapData[path.id];
+                    }
+                });
+            };
+            reader.readAsText(file);
+        }
+
+        loadSvgMap();
+    </script>
+</body>
+
+</html>
