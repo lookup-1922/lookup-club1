@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角形描画プログラム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        svg {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>三角形描画プログラム</h1>
+    <p>三角形の3辺の長さを入力してください。</p>
+    <form id="triangleForm">
+        <label for="a">辺 a:</label>
+        <!-- ユーザーが入力する辺 a の長さ -->
+        <input type="number" id="a" min="0.1" step="any" required><br>
+        <label for="b">辺 b:</label>
+        <!-- ユーザーが入力する辺 b の長さ -->
+        <input type="number" id="b" min="0.1" step="any" required><br>
+        <label for="c">辺 c:</label>
+        <!-- ユーザーが入力する辺 c の長さ -->
+        <input type="number" id="c" min="0.1" step="any" required><br><br>
+        <button type="submit">描画する</button>
+    </form>
+
+    <div id="output"></div>
+    <!-- 三角形を描画するためのSVG -->
+    <svg id="triangle" width="400" height="400"></svg>
+
+    <script>
+        document.getElementById('triangleForm').addEventListener('submit', function (e) {
+            e.preventDefault(); // フォーム送信を防止
+
+            // 各辺の長さを取得し、数値に変換
+            const a = parseFloat(document.getElementById('a').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const c = parseFloat(document.getElementById('c').value);
+
+            const output = document.getElementById('output');
+            const svg = document.getElementById('triangle');
+
+            // 結果エリアとSVGを初期化
+            output.innerHTML = '';
+            svg.innerHTML = '';
+
+            // 三角形の条件を確認 (三角不等式)
+            if (a + b > c && b + c > a && c + a > b) {
+                // 三角形の各角度を計算
+                const angleA = Math.acos((b ** 2 + c ** 2 - a ** 2) / (2 * b * c)) * (180 / Math.PI); // ∠A
+                const angleB = Math.acos((a ** 2 + c ** 2 - b ** 2) / (2 * a * c)) * (180 / Math.PI); // ∠B
+                const angleC = 180 - angleA - angleB; // ∠C (合計180°から他の角度を引く)
+
+                // 結果を出力
+                output.innerHTML = `
+          <p>三角形の角度：</p>
+          <p>∠A: ${angleA.toFixed(2)}°</p>
+          <p>∠B: ${angleB.toFixed(2)}°</p>
+          <p>∠C: ${angleC.toFixed(2)}°</p>
+        `;
+
+                // スケーリング係数を計算 (描画用にサイズを調整)
+                const scale = 150 / Math.max(a, b, c);
+                const x2 = c * scale; // 辺cに対応する点のx座標
+                const y2 = 0; // 辺cはx軸上にある
+                const x3 = (a ** 2 - b ** 2 + c ** 2) / (2 * c) * scale; // 辺aに対応する点のx座標
+                const y3 = Math.sqrt(a ** 2 * scale ** 2 - x3 ** 2); // 辺aに対応する点のy座標 (高さ)
+
+                // キャンバスの中心に三角形を配置
+                const offsetX = 200; // 中心のx座標
+                const offsetY = 200; // 中心のy座標
+                const points = `
+          ${offsetX},${offsetY} 
+          ${offsetX + x2},${offsetY} 
+          ${offsetX + x3},${offsetY - y3}
+        `;
+
+                // SVGで三角形を描画し、各角のラベルを追加
+                svg.innerHTML = `
+          <polygon points="${points}" fill="lightblue" stroke="black" stroke-width="1" />
+          <text x="${offsetX - 10}" y="${offsetY + 20}" font-size="12" fill="black">∠A</text>
+          <text x="${offsetX + x2 - 10}" y="${offsetY + 20}" font-size="12" fill="black">∠B</text>
+          <text x="${offsetX + x3 + 10}" y="${offsetY - y3 - 10}" font-size="12" fill="black">∠C</text>
+        `;
+            } else {
+                // 三角形を形成できない場合のエラーメッセージ
+                output.innerHTML = '<p style="color: red;">指定された長さでは三角形を形成できません。</p>';
+            }
+        });
+    </script>
+</body>
+
+</html>

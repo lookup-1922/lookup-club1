@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .dark-mode {
+            background: #121212;
+            color: #ffffff;
+        }
+
+        input,
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #bookmarks {
+            margin-top: 20px;
+            list-style: none;
+            padding: 0;
+        }
+
+        #bookmarks li {
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f0f0f0;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .dark-mode #bookmarks li {
+            background: #333;
+        }
+
+        .bookmark-text {
+            flex-grow: 1;
+        }
+
+        .bookmark-text a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .dark-mode .bookmark-text a {
+            color: #1e90ff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>検索</h1>
+    <input type="text" id="searchBox" placeholder="検索ワードを入力">
+    <button onclick="search('google')">Google</button>
+    <button onclick="search('duckduckgo')">DuckDuckGo</button>
+
+    <h2>ブックマーク</h2>
+    <input type="text" id="bookmarkInput" placeholder="URLを入力">
+    <button onclick="addBookmark()">追加</button>
+    <button onclick="exportBookmarks()">エクスポート</button>
+    <input type="file" id="importFile" onchange="importBookmarks(event)">
+    <ul id="bookmarks"></ul>
+
+    <script>
+        function search(engine) {
+            const query = document.getElementById('searchBox').value;
+            if (!query) return;
+            const urls = {
+                google: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+                duckduckgo: `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
+            };
+            window.location.href = urls[engine];
+        }
+
+        function addBookmark() {
+            const url = document.getElementById('bookmarkInput').value;
+            if (!url) return;
+            let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            bookmarks.push(url);
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        function loadBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            const list = document.getElementById('bookmarks');
+            list.innerHTML = '';
+            bookmarks.forEach((url, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="bookmark-text"><a href="${url}" target="_blank">${url}</a></span>
+                    <button onclick="moveBookmark(${index}, -1)">⬆</button>
+                    <button onclick="moveBookmark(${index}, 1)">⬇</button>
+                    <button onclick="deleteBookmark(${index})">削除</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function deleteBookmark(index) {
+            let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            bookmarks.splice(index, 1);
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        function moveBookmark(index, direction) {
+            let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            if ((index + direction) < 0 || (index + direction) >= bookmarks.length) return;
+            [bookmarks[index], bookmarks[index + direction]] = [bookmarks[index + direction], bookmarks[index]];
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        function exportBookmarks() {
+            const bookmarks = localStorage.getItem('bookmarks');
+            if (!bookmarks) return;
+            const blob = new Blob([bookmarks], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'bookmarks.json';
+            a.click();
+        }
+
+        function importBookmarks(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                localStorage.setItem('bookmarks', e.target.result);
+                loadBookmarks();
+            };
+            reader.readAsText(file);
+        }
+
+        function applyTheme() {
+            const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.body.classList.toggle('dark-mode', darkMode);
+        }
+
+        window.onload = function () {
+            applyTheme();
+            loadBookmarks();
+        };
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+    </script>
+</body>
+
+</html>
