@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Excel → Typst 表ジェネレータ</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+            margin: 18px;
+            background: #f7f8fb;
+            color: #111
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 4px
+        }
+
+        p {
+            margin-top: 6px;
+            color: #333
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 10px;
+            border: 1px solid #ccd;
+            background: #fff;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: monospace
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px
+        }
+
+        .row>* {
+            flex: 1
+        }
+
+        button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 0;
+            background: #2563eb;
+            color: #fff;
+            cursor: pointer
+        }
+
+        button.secondary {
+            background: #6b7280
+        }
+
+        pre {
+            background: #0b1220;
+            color: #dbeafe;
+            padding: 12px;
+            border-radius: 6px;
+            overflow: auto
+        }
+
+        label {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .small {
+            font-size: 13px;
+            color: #444
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #555;
+            margin-top: 6px
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Excel → Typst 表ジェネレータ</h1>
+    <p>エクセルからコピーした表（タブ区切りやCSV）をここに貼って「変換」ボタンを押すと、Typst の表コードが生成されます。キャプションは空に設定されます。</p>
+
+    <div>
+        <label class="small"><input id="use-header" type="checkbox" checked>
+            1行目を列ヘッダとして使用する（チェックを外すと全行をデータ行と扱います）</label>
+        <label class="small" style="margin-top:6px"><input id="trim-cells" type="checkbox" checked>
+            セルの前後の空白を自動削除する</label>
+    </div>
+
+    <div style="margin-top:10px">
+        <textarea id="input" placeholder="ここにエクセル（コピー→貼り付け）してください。例: タブ区切り・CSVのどちらでも可。"></textarea>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+        <button id="convert">変換</button>
+        <button id="copy" class="secondary">コピー（Typstコードをクリップボードへ）</button>
+    </div>
+
+    <div style="margin-top:12px">
+        <div class="hint">生成された Typst コード（編集してから Typst に貼り付けてください）:</div>
+        <pre id="output">生成結果がここに表示されます。</pre>
+    </div>
+
+    <script>
+        function parseTable(text) {
+            // 行分解。改行は \r\n|\n|\r を許す
+            const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
+            if (lines.length === 0) return { rows: [] };
+            // 区切り文字判定：タブがあればタブ優先、次にカンマ、なければ連続空白
+            let delim = "\\t";
+            if (!text.includes("\\t")) {
+                // カンマが多ければカンマ区切り
+                const commaCounts = lines.map(l => (l.match(/,/g) || []).length).reduce((a, b) => a + b, 0);
+                const tabCounts = lines.map(l => (l.match(/\\t/g) || []).length).reduce((a, b) => a + b, 0);
+                delim = (commaCounts >= tabCounts && commaCounts > 0) ? "," : "\\s+";
+            }
+            const re = new RegExp(delim);
+            const rows = lines.map(line => line.split(re));
+            return { rows };
+        }
+
+        function escapeForTypstCell(s) {
+            // Typst のセル表記は [ ... ]。改行を避け、角括弧をエスケープするために、
+            // ここでは角括弧を丸括弧に置換し、末尾・先頭の空白は trim 済み。
+            if (s === null || s === undefined) return "";
+            // もし数値ならそのまま（小数点・E表記もOK）。だが判断はゆるめに。
+            const t = String(s);
+            // 角括弧を丸括弧に置換（Typst内で生の [ や ] は混乱を招くため簡易的に処理）
+            return t.replace(/\\[/g, "(").replace(/\\]/g, ")").replace(/\\r|\\n/g, " ");
+        }
+
+        function buildTypst(rows, opts) {
+            if (rows.length === 0) return "";
+            const useHeader = opts.useHeader;
+            const trimCells = opts.trimCells;
+            const header = useHeader ? rows[0] : null;
+            const data = useHeader ? rows.slice(1) : rows;
+            const colCount = (header ? header.length : rows[0].length);
+
+            // start building
+            const lines = [];
+            lines.push("#figure(");
+            lines.push("  caption: [],"); // 空の caption
+            lines.push("  table(");
+            lines.push(`    columns: ${colCount},`);
+
+            // headers
+            if (header) {
+                const hcells = header.map(c => {
+                    let v = c ?? "";
+                    if (trimCells) v = v.trim();
+                    v = escapeForTypstCell(v);
+                    // ヘッダが空なら [] を出力（ Typst の表記では [] で空セル ）
+                    //return `    [${v}]`;
+                    return `[${v}]`;
+                });
+                lines.push("    " + "table.header(" + hcells.join(", ") + ",)" + ",");
+                //lines.push(",");
+            }
+
+            // data rows
+            for (const r of data) {
+                // ensure length
+                const rowCells = [];
+                for (let i = 0; i < colCount; i++) {
+                    let v = (i < r.length) ? (r[i] ?? "") : "";
+                    if (trimCells) v = String(v).trim();
+                    v = escapeForTypstCell(v);
+                    rowCells.push(`[${v}]`);
+                }
+                lines.push("    " + rowCells.join(", ") + ",");
+            }
+
+            lines.push("    table.hline(),");
+            lines.push("  )");
+            lines.push(")");
+            return lines.join("\n");
+        }
+
+        document.getElementById("convert").addEventListener("click", () => {
+            const src = document.getElementById("input").value;
+            const useHeader = document.getElementById("use-header").checked;
+            const trimCells = document.getElementById("trim-cells").checked;
+            if (!src.trim()) {
+                document.getElementById("output").textContent = "// 入力が空です。エクセルで範囲をコピーして貼り付けてください。";
+                return;
+            }
+            const parsed = parseTable(src);
+            if (parsed.rows.length === 0) {
+                document.getElementById("output").textContent = "// テーブル解析に失敗しました。区切りはタブ・カンマ・空白のいずれかを想定しています。";
+                return;
+            }
+            const typst = buildTypst(parsed.rows, { useHeader, trimCells });
+            document.getElementById("output").textContent = typst;
+        });
+
+        document.getElementById("copy").addEventListener("click", async () => {
+            const txt = document.getElementById("output").textContent;
+            try {
+                await navigator.clipboard.writeText(txt);
+                alert("Typstコードをクリップボードにコピーしました。");
+            } catch (e) {
+                // フォールバック
+                const ta = document.createElement("textarea");
+                ta.value = txt;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+                alert("コピーしました（フォールバック）。");
+            }
+        });
+
+        // 便利: エクセルから貼り付けたときに自動で変換（貼り付け後に短時間遅延して変換）
+        document.getElementById("input").addEventListener("paste", (ev) => {
+            setTimeout(() => { document.getElementById("convert").click(); }, 100);
+        });
+    </script>
+</body>
+
+</html>
