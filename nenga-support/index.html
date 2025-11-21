@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>年賀状シェア</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-neutral-100 text-neutral-900">
+    <div class="max-w-xl mx-auto p-4">
+
+        <h1 class="text-3xl font-bold mb-6 text-center text-red-600">
+            年賀状シェア
+        </h1>
+
+        <!-- 画像読込 -->
+        <section class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-xl font-semibold mb-3">年賀状画像</h2>
+            <input type="file" id="imageInput" accept="image/*" class="block w-full text-sm text-neutral-700
+             file:mr-4 file:py-2 file:px-4
+             file:rounded-lg file:border-0
+             file:text-sm file:font-semibold
+             file:bg-red-100 file:text-red-700
+             hover:file:bg-red-200" />
+        </section>
+
+        <!-- 名簿追加 -->
+        <section class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-xl font-semibold mb-3">名簿の追加</h2>
+            <input id="nameInput" placeholder="名前（宛名）" class="w-full mb-3 p-2 border rounded-lg" />
+            <textarea id="messageInput" placeholder="一言メッセージ（空でもOK）"
+                class="w-full mb-3 p-2 border rounded-lg"></textarea>
+            <button onclick="addPerson()"
+                class="w-full py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600">
+                追加
+            </button>
+        </section>
+
+        <!-- 名簿一覧 -->
+        <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-3">名簿</h2>
+            <div id="personList" class="space-y-4"></div>
+        </section>
+
+        <!-- CSV -->
+        <section class="bg-white p-4 rounded-xl shadow">
+            <h2 class="text-xl font-semibold mb-3">バックアップ</h2>
+
+            <button onclick="exportCSV()"
+                class="w-full py-2 bg-neutral-700 text-white font-semibold rounded-lg hover:bg-neutral-800 mb-3">
+                CSV にエクスポート
+            </button>
+
+            <input type="file" id="csvInput" accept=".csv" onchange="importCSV(event)" class="block w-full text-sm text-neutral-700
+             file:mr-4 file:py-2 file:px-4
+             file:rounded-lg file:border-0
+             file:text-sm file:font-semibold
+             file:bg-neutral-200 file:text-neutral-700
+             hover:file:bg-neutral-300" />
+        </section>
+
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
