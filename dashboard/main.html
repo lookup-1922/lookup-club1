@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>ダッシュボード</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style>
+		:root {
+			--bg: #0f172a;
+			--card: #020617;
+			--text: #e5e7eb;
+			--sub: #94a3b8;
+			--accent: #38bdf8;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+			background: linear-gradient(160deg, #020617, #020617);
+			color: var(--text);
+			min-height: 100vh;
+			padding: 24px;
+		}
+
+		h1 {
+			margin: 0 0 16px;
+			font-size: 1.4rem;
+			color: var(--sub);
+		}
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+			gap: 16px;
+		}
+
+		.card {
+			background: radial-gradient(120% 120% at top left, #020617, #020617);
+			border-radius: 16px;
+			padding: 20px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+		}
+
+		.time {
+			font-size: 2.6rem;
+			font-weight: 600;
+			letter-spacing: 0.05em;
+		}
+
+		.date {
+			margin-top: 4px;
+			color: var(--sub);
+		}
+
+		.label {
+			font-size: .85rem;
+			color: var(--sub);
+			margin-bottom: 8px;
+		}
+
+		.note {
+			width: 100%;
+			min-height: 120px;
+			background: transparent;
+			border: 1px solid #1e293b;
+			border-radius: 12px;
+			color: var(--text);
+			padding: 12px;
+			resize: vertical;
+			font-family: inherit;
+		}
+
+		.stat {
+			font-size: 1.8rem;
+			font-weight: 600;
+			color: var(--accent);
+		}
+
+		footer {
+			margin-top: 24px;
+			font-size: .75rem;
+			color: var(--sub);
+			text-align: right;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>ダッシュボード</h1>
+
+	<div class="grid">
+		<div class="card">
+			<div class="label">現在時刻</div>
+			<div class="time" id="time">--:--:--</div>
+			<div class="date" id="date">----</div>
+			<div class="date" id="signal"></div>
+		</div>
+
+		<div class="card">
+			<div class="label">メモ（自動保存）</div>
+			<textarea class="note" id="note" placeholder="自由にメモを書いてください"></textarea>
+		</div>
+
+		<div class="card">
+			<div class="label">今年の進捗</div>
+			<div class="stat" id="yearPercent">-- %</div>
+			<progress id="yearBar" max="100" value="0" style="width:100%"></progress>
+		</div>
+
+		<div class="card">
+			<div class="label">今月の進捗</div>
+			<div class="stat" id="monthPercent">-- %</div>
+			<progress id="monthBar" max="100" value="0" style="width:100%"></progress>
+		</div>
+
+		<div class="card">
+			<div class="label">今日の進捗</div>
+			<div class="stat" id="dayPercent">-- %</div>
+			<progress id="dayBar" max="100" value="0" style="width:100%"></progress>
+		</div>
+
+		<div class="card">
+			<div class="label">Unix Time</div>
+			<div class="stat" id="unix">----</div>
+		</div>
+
+		<div class="card">
+			<div class="label">画面 / ウィンドウサイズ</div>
+			<div id="screen"></div>
+			<div id="window"></div>
+		</div>
+
+		<div class="card">
+			<div class="label">デバイス情報</div>
+			<div>CPU コア数: <span id="cpu"></span></div>
+			<div>メモリ量: <span id="memory"></span> GB</div>
+		</div>
+	</div>
+
+	<footer>
+		ダッシュボード / ©lookup-1922
+	</footer>
+
+	<script>
+		function beep() {
+			const ctx = new AudioContext();
+			const osc = ctx.createOscillator();
+			const gain = ctx.createGain();
+			osc.frequency.value = 880;
+			osc.connect(gain);
+			gain.connect(ctx.destination);
+			osc.start();
+			gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+			osc.stop(ctx.currentTime + 0.8);
+		}
+
+		function updateTime() {
+			const now = new Date();
+			const h = String(now.getHours()).padStart(2, '0');
+			const m = String(now.getMinutes()).padStart(2, '0');
+			const s = String(now.getSeconds()).padStart(2, '0');
+			document.getElementById('time').textContent = `${h}:${m}:${s}`;
+
+			const dateStr = now.toLocaleDateString('ja-JP', {
+				year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
+			});
+			document.getElementById('date').textContent = dateStr;
+
+			// 正時時報
+			if (m === '00' && s === '00') {
+				document.getElementById('signal').textContent = '⏰ 正時です';
+				beep();
+			} else {
+				document.getElementById('signal').textContent = '';
+			}
+
+			// Unix time
+			document.getElementById('unix').textContent = Math.floor(now.getTime() / 1000);
+
+			// 年間進捗
+			const startYear = new Date(now.getFullYear(), 0, 1);
+			const endYear = new Date(now.getFullYear() + 1, 0, 1);
+			const yearPercent = ((now - startYear) / (endYear - startYear)) * 100;
+			document.getElementById('yearPercent').textContent = yearPercent.toFixed(2) + ' %';
+			document.getElementById('yearBar').value = yearPercent;
+
+			// 月間進捗
+			const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+			const endMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+			const monthPercent = ((now - startMonth) / (endMonth - startMonth)) * 100;
+			document.getElementById('monthPercent').textContent = monthPercent.toFixed(2) + ' %';
+			document.getElementById('monthBar').value = monthPercent;
+
+			// 今日の進捗
+			const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			const endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+			const dayPercent = ((now - startDay) / (endDay - startDay)) * 100;
+			document.getElementById('dayPercent').textContent = dayPercent.toFixed(2) + ' %';
+			document.getElementById('dayBar').value = dayPercent;
+		}
+
+		setInterval(updateTime, 1000);
+		updateTime();
+
+		// 画面サイズ
+		function updateSize() {
+			document.getElementById('screen').textContent = `画面: ${screen.width} x ${screen.height}`;
+			document.getElementById('window').textContent = `ウィンドウ: ${innerWidth} x ${innerHeight}`;
+		}
+		window.addEventListener('resize', updateSize);
+		updateSize();
+
+		// デバイス情報
+		document.getElementById('cpu').textContent = navigator.hardwareConcurrency || '不明';
+		document.getElementById('memory').textContent = navigator.deviceMemory || '不明';
+
+		// メモのローカル保存
+		const note = document.getElementById('note');
+		note.value = localStorage.getItem('dashboard_note') || '';
+		note.addEventListener('input', () => {
+			localStorage.setItem('dashboard_note', note.value);
+		});
+	</script>
+</body>
+
+</html>
